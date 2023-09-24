@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Todo App</title>
+</head>
+
+<body onload="fetchTodosAndDisplay()">
+  <!-- Todo title -->
+  <input type="text" placeholder="Title" id="todoTitle">
+  <!-- Todo description -->
+  <input type="text" placeholder="Description" id="todoDescription">
+  <!-- Add todo button -->
+  <button id="addTodoButton" onclick="addTodo()">Add Todo</button>
+
+  <!--  -->
+  <div>
+    <ul id="todoList"></ul>
+  </div>
+
+  <script>
+    // Add a new todo
+    function addTodo() {
+      // Get input elements
+      const titleInput = document.getElementById("todoTitle");
+      const descriptionInput = document.getElementById("todoDescription");
+
+      // Extract values for input elements
+      const title = titleInput.value;
+      const description = descriptionInput.value;
+
+      // Create a data object
+      const todoData = {
+        title: title,
+        description: description,
+      };
+
+      // Clear title and description input values
+      titleInput.value = "";
+      descriptionInput.value = "";  
+
+      // Define request options for the POST request
+      const requestOptions = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(todoData),
+      };
+
+      // Send the POST request to create a new todo
+      fetch("http://localhost:3000/todos", requestOptions)
+        .then(response => response.json())
+        .then(data => {
+          displayTodo({ id: data.id, ...todoData });
+        });
+    }
+
+    // Delete todo by Id
+    function deleteTodoById(id) {
+      const todoId = id;
+
+      const requestOptions = {
+        method: "DELETE",
+      }
+
+      fetch(`http://localhost:3000/todos/${todoId}`, requestOptions)
+        .then(response => response.text())
+        .then(responseData => {
+          console.log(responseData);
+        });
+    }
+
+    // Fetch all todos and display
+    function fetchTodosAndDisplay() {
+      fetch("http://localhost:3000/todos")
+        .then(response => response.json())
+        .then(todos => {
+          todos.forEach(todo => displayTodo(todo));
+        });
+    }
+
+    // Remove todo from display on Delete button click
+    function removeTodo() {
+      const clickedDeleteButton = event.target;
+      const clickedDeleteButtonId = clickedDeleteButton.id;
+      const todoToRemove = clickedDeleteButton.parentElement;
+      deleteTodoById(clickedDeleteButtonId);
+      todoToRemove.remove();
+    }
+
+    // Display todo at the last
+    function displayTodo(todo) {
+      const todoList = document.getElementById("todoList");
+      // new todo to add to todoList
+      const newTodo = document.createElement("li");
+      // todo title
+      const todoTitle = document.createElement("h3");
+      todoTitle.innerHTML = todo.title;
+      // todo description
+      const todoDescription = document.createElement("p");
+      todoDescription.innerHTML = todo.description;
+      // todo delete button
+      const todoDeleteButton = document.createElement("button");
+      todoDeleteButton.textContent = "Delete";
+      todoDeleteButton.setAttribute("id", todo.id);
+      todoDeleteButton.addEventListener("click", removeTodo);
+      // append title, description, delete button to newTodo
+      newTodo.append(todoTitle, todoDescription, todoDeleteButton);
+      // append newTodo to todoList
+      todoList.append(newTodo);
+    }
+  </script>
+</body>
+
+</html>
